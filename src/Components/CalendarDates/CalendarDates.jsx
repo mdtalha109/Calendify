@@ -1,7 +1,7 @@
 // CalendarDates.js
 import React from 'react';
 
-const CalendarDates = ({ currentDate, events, dragOverEvent, handleDragOver, handleDrop, handleDragStart, handleDateCellClick }) => {
+const CalendarDates = ({ currentDate, events, dragOverEvent, handleDragOver, handleDrop, handleDragStart, handleDateCellClick,handleEditEvent, handleDeleteEvent }) => {
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const getFirstDayOfMonth = (date) => {
