@@ -1,18 +1,39 @@
-// CalendarLayout.js
+/* eslint-disable no-unused-vars */
+
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import CalendarHeader from '../CalendarHeader/CalendarHeader';
 import CalendarWeekdays from '../CalendarWeekdays/CalendarWeekdays'
 import CalendarDates from '../CalendarDates/CalendarDates'
 import EventForm from '../EventForm/EventForm'
-import EventEditForm from '../EventEditForm/EventEditForm'
+import RecurringEventForm from '../RecurringEventForm/RecurringEventForm';
+import Modal from '../Modal/Modal.jsx';
+import { addEvent, editEvent } from '../../features/events/eventsSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const CalendarLayout = () => {
+   const events = useSelector((state) => state.events.events);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isEventFormVisible, setEventFormVisible] = useState(false);
-  const [events, setEvents] = useState([]);
+
   const [selectedDate, setSelectedDate] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [dragOverEvent, setDragOverEvent] = useState(null);
   const [editingEvent, setEditingEvent] = useState(null);
+
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const [isRecurringEventFormVisible, setRecurringEventFormVisible] = useState(false);
+
+  const dispatch = useDispatch()
+
+  const handleOpenRecurringEventForm = () => {
+    setRecurringEventFormVisible(true);
+  };
+
+  const handleCloseRecurringEventForm = () => {
+    setRecurringEventFormVisible(false);
+  };
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -22,38 +43,46 @@ const CalendarLayout = () => {
     handleOpenEventForm();
   };
 
-  const handleEditEvent = (event) => {
+  const handleEditEvent = (e, event) => {
+    e.stopPropagation()
     setEditingEvent(event);
   };
 
+  // eslint-disable-next-line no-unused-vars
+  const getUniqueCategories = () => {
+    const uniqueCategories = [...new Set(events.map(event => event.category))];
+    return uniqueCategories;
+  };
+
   const handleDeleteEvent = (eventToDelete) => {
-    const updatedEvents = events.filter(event => event !== eventToDelete);
-    setEvents(updatedEvents);
+    // const updatedEvents = events.filter(event => event !== eventToDelete);
   };
 
   const handleOpenEventForm = () => {
     setEventFormVisible(true);
   };
 
-  const handleEventSave = (updatedEvent) => {
-    const updatedEvents = events.map(event =>
-      event === editingEvent ? updatedEvent : event 
-    );
-    setEvents(updatedEvents);
-    setEditingEvent(null);
+  const handleEventSave = (id, title, date, time, category, color) => {
+   
+    dispatch(editEvent({id, title, date, time, category, color}))
   };
 
   const handleCloseEventForm = () => {
     setEventFormVisible(false);
   };
 
-  const addEvent = (title, date, time) => {
+  const handleAddEvent = (id, title, date, time, category, color) => {
+    
     const newEvent = {
+      id,
       title,
       date,
       time,
+      category,
+      color,
     };
-    setEvents([...events, newEvent]);
+
+    dispatch(addEvent({...newEvent}));
   };
 
   const handleDragStart = (e, event) => {
@@ -78,9 +107,23 @@ const CalendarLayout = () => {
           : event
       );
 
-      setEvents(updatedEvents);
+      // setEvents(updatedEvents);
     }
   };
+
+  // eslint-disable-next-line no-unused-vars
+  const handleCategoryFilter = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+  const handleSelectMonth = (date) => {
+    setCurrentDate(date);
+  };
+
+  const filteredEvents = selectedCategory === 'All'
+    ? events
+    : events.filter(event => event.category === selectedCategory);
+
 
   useEffect(() => {
     if (isEventFormVisible) {
@@ -89,13 +132,27 @@ const CalendarLayout = () => {
   }, [isEventFormVisible]);
 
   return (
-    <div className="calendar">
+    <div className="calendar bg-white dark:bg-gray-800 rounded-lg shadow-lg m-4">
       <CalendarHeader
         currentDate={currentDate}
         handleOpenEventForm={handleOpenEventForm}
         onPrevMonth={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}
         onNextMonth={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
+        onSelectMonth={handleSelectMonth}
+        handleOpenRecurringEventForm={handleOpenRecurringEventForm} 
       />
+
+      {/* <div className="filter-section">
+        <label>Filter by Category:</label>
+        <select value={selectedCategory} onChange={handleCategoryFilter}>
+          <option value="All">All</option>
+          {getUniqueCategories().map(category => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div> */}
 
       <div className="calendar-body">
         <CalendarWeekdays daysOfWeek={daysOfWeek} />
@@ -112,15 +169,28 @@ const CalendarLayout = () => {
         />
       </div>
       {isEventFormVisible && (
-        <EventForm selectedDate={selectedDate} onClose={handleCloseEventForm} onEventCreate={addEvent} />
+        <Modal>
+            <EventForm selectedDate={selectedDate} onClose={handleCloseEventForm} onEventCreate={handleAddEvent} />
+        </Modal>
+        
       )}
 
       {editingEvent && (
-        <EventEditForm
-          event={editingEvent}
-          onClose={() => setEditingEvent(null)}
-          onSave={handleEventSave}
-          
+
+        <Modal>
+            <EventForm 
+              selectedDate={null} 
+              onClose={() => setEditingEvent(null)}
+              onEventCreate={handleEventSave} 
+              event={editingEvent}
+              />
+        </Modal>
+      )}
+
+      {isRecurringEventFormVisible && (
+        <RecurringEventForm
+          onClose={handleCloseRecurringEventForm}
+          // onRecurringEventCreate={handleRecurringEventCreate}
         />
       )}
     </div>

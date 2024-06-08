@@ -4,17 +4,23 @@ import * as Yup from 'yup';
 import { v4 as uuidv4 } from 'uuid';
 
 import PropTypes from 'prop-types';
+import Input from '../UI/Input/Input';
 
 
-const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
+const EventForm = ({ selectedDate, onClose, onEventCreate, event = {} }) => {
+
+  console.log("event: ", event)
+  let eventValue = {
+    
+    title: event.title ?? '',
+    date: selectedDate ?? event.date,
+    time: event.time ?? '',
+    category: event.category ?? '',
+    color: event.color ?? '#FF5733',
+    isEditing: event != {}
+  }
   const formik = useFormik({
-    initialValues: {
-      title: '',
-      date: selectedDate,
-      time: '',
-      category: '',
-      color: '#FF5733', // Default color
-    },
+    initialValues: eventValue,
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       time: Yup.string().required('Time is required'),
@@ -22,8 +28,9 @@ const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
       color: Yup.string().required('Required'),
     }),
     onSubmit: (values) => {
-      let id = uuidv4()
-      onEventCreate(id, values.title, values.date, values.time, values.category, values.color);
+      let id = event.id ?? uuidv4();
+      console.log("values: ", values)
+      onEventCreate(id, values.title, values.date, values.time, values.category, values.color, values.isEditing);
       formik.resetForm();
       onClose();
     },
@@ -35,8 +42,8 @@ const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
       <form onSubmit={formik.handleSubmit}>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Title:</label>
-          <input
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+          <Input
+            className={` ${
               formik.touched.title && formik.errors.title ? 'border-red-500' : ''
             }`}
             type="text"
@@ -48,8 +55,8 @@ const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Time:</label>
-          <input
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+          <Input
+            className={`${
               formik.touched.time && formik.errors.time ? 'border-red-500' : ''
             }`}
             type="time"
@@ -61,8 +68,8 @@ const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Category:</label>
-          <input
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+          <Input
+            className={`${
               formik.touched.category && formik.errors.category ? 'border-red-500' : ''
             }`}
             type="text"
@@ -74,8 +81,8 @@ const EventForm = ({ selectedDate, onClose, onEventCreate }) => {
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Color:</label>
-          <input
-            className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${
+          <Input
+            className={`${
               formik.touched.color && formik.errors.color ? 'border-red-500' : ''
             }`}
             type="color"
@@ -109,6 +116,7 @@ EventForm.propTypes = {
   selectedDate: PropTypes.instanceOf(Date).isRequired,
   onClose: PropTypes.func.isRequired,
   onEventCreate: PropTypes.func.isRequired,
+  event: PropTypes.object,
 };
 
 export default EventForm;
