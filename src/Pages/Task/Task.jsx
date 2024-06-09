@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TaskList from '../../Components/Task/TaskList';
 import TaskForm from '../../Components/Task/TaskForm';
 import { useDispatch } from 'react-redux';
 import { addTask, editTask } from '../../features/tasks/taskSlice';
@@ -29,6 +30,11 @@ const TaskPage = () => {
     setTaskToEdit(null);
   };
 
+  const handleEditTaskClick = (task) => {
+    setTaskToEdit(task);
+    setIsFormOpen(true);
+  };
+
   return (
     <>
     <div className="bg-white p-6 m-4">
@@ -52,6 +58,7 @@ const TaskPage = () => {
     </div>
   
     <div className="m-4">
+    <TaskList onEditTask={handleEditTaskClick} />
       
     </div>
     </>
